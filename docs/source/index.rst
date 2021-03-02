@@ -1,10 +1,10 @@
 .. _template-name:
 .. Documentation for Template
 
-Welcome to a Github Template
+spectralProcessing Documentation
 =============================================
 
-.. .. autoclass:: LIA.LIA
+.. automodule:: spectral_processing
     :members:
     :undoc-members:
 

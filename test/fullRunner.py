@@ -7,11 +7,11 @@ import sys
 import context
 sys.path.append('test') # Allows this runner to be run from the main directory
 
-import test_something
+import test_spectral_power
 
 loader = unittest.TestLoader()
 suite = unittest.TestSuite()
-suite.addTests(loader.loadTestsFromModule(test_something))
+suite.addTests(loader.loadTestsFromModule(test_spectral_power))
 
 runner = unittest.TextTestRunner(verbosity=3)
 result = runner.run(suite)
