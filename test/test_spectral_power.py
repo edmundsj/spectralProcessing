@@ -19,13 +19,13 @@ class TestSpectralPower(unittest.TestCase):
         # Tests the case where we have an even number of samples
         raw_data = np.array([1, 2, 3, 4, 5, 0])
         actual_spectrum = \
-                getPowerSpectrum(raw_data, filtering='box', siding='single')
+                getPowerSpectrum(raw_data, window='box', siding='single')
         desired_spectrum = np.array([6.25, 2*1, 2*1/3.0, 2*1/4.0])
         assert_allclose(actual_spectrum, desired_spectrum)
 
         # Odd number of samples
         raw_data = np.array([1, 2, 3, 4, 5, 0,1])
-        actual_spectrum = getPowerSpectrum(raw_data, filtering='box',
+        actual_spectrum = getPowerSpectrum(raw_data, window='box',
                                            siding='single')
         desired_spectrum = np.array([5.224489795918367,
                                      2*0.9303959383749711,2*0.21858791491176946,
@@ -38,7 +38,7 @@ class TestSpectralPower(unittest.TestCase):
         """
         x = np.arange(-5, 5+0.5, 0.5)
         raw_data = np.sin(x)
-        actual_spectrum = getPowerSpectrum(raw_data, filtering='hann',
+        actual_spectrum = getPowerSpectrum(raw_data, window='hann',
                                            siding='single')
         desired_spectrum = np.array([4.367188082510738e-37,
                                      2*0.09791637933291152,
@@ -55,14 +55,14 @@ class TestSpectralPower(unittest.TestCase):
         total_power = np.sum(desired_spectrum)
         assert_equal(total_power, 0.501942746189535)
 
-    def testPowerSpectrumSinewaveBoxcar(self):
+    def testSingleSidedSinewaveBoxcar(self):
         """
         Tests teh power spectrum of a sinewave with no hann window.
 
         """
         x = np.arange(-5, 5+0.5, 0.5)
         raw_data = np.sin(x)
-        actual_spectrum = getPowerSpectrum(raw_data, filtering='box',
+        actual_spectrum = getPowerSpectrum(raw_data, window='box',
                                            siding='single')
         desired_spectrum = np.array([1.118000149122749e-34,
                                      2*0.022942929484678257,
@@ -79,14 +79,14 @@ class TestSpectralPower(unittest.TestCase):
         total_power = np.sum(desired_spectrum)
         assert_equal(total_power, 0.5436879879264717)
 
-    def testPowerSpectrumSinewaveBoxcar(self):
+    def testDoubleSidedSinewaveBoxcar(self):
         """
         Tests teh power spectrum of a sinewave with no hann window.
 
         """
         x = np.arange(-5, 5+0.5, 0.5)
         raw_data = np.sin(x)
-        actual_spectrum = getPowerSpectrum(raw_data, filtering='box',
+        actual_spectrum = getPowerSpectrum(raw_data, window='box',
                                            siding='double')
         desired_spectrum = np.array([1.118000149122749e-34,
                                      0.022942929484678257,
@@ -113,6 +113,35 @@ class TestSpectralPower(unittest.TestCase):
         assert_allclose(actual_spectrum, desired_spectrum, atol=1e-15)
         total_power = np.sum(desired_spectrum)
         assert_equal(total_power, 0.5436879879264715)
+
+    def testDCBoxcar(self):
+        """
+        Tests whether the DC component is correct with a boxcar window
+        windowing.
+        """
+        desired_dc_component = 1
+        x = np.arange(-5, 5+0.5, 0.5)
+        test_data = 1 + np.sin(2*x)
+        actual_spectrum = getPowerSpectrum(test_data, window='boxcar',
+                                           siding='single')
+        actual_dc_component = actual_spectrum[0]
+        assert_equal(actual_dc_component, desired_dc_component)
+
+    def testDCHann(self):
+        """
+        Tests whether the DC component is correct with a Hann Window
+        """
+        desired_dc_component = 0.6349206349206348
+        x = np.arange(-5, 5+0.5, 0.5)
+        test_data = 1 + np.sin(2*x)
+        actual_spectrum = getPowerSpectrum(test_data, window='hann',
+                                           siding='single')
+        actual_dc_component = actual_spectrum[0]
+        assert_equal(actual_dc_component, desired_dc_component)
+
+    def testPandasBoxcar(self):
+        """
+        """
 
     def tearDown(self):
         pass # Tear down to be run after every test case
