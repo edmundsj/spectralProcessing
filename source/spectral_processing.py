@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 from scipy.signal.windows import hann
 from Plotting import plt, prettifyPlot
+from pint import UnitRegistry
+import re
+ureg = UnitRegistry()
 
 def getPowerSpectrum(data, window='box', siding='single'):
     """
@@ -30,12 +33,31 @@ def getPowerSpectrum(data, window='box', siding='single'):
             data, window_data, siding=siding)
     elif isinstance(data, pd.DataFrame):
         power_spectrum = getPowerSpetrumPandas(
-            data, window_data, siding=siding)
+            data, window_data=window_data, siding=siding)
     else:
         raise ValueError(f"Function not implemented for type {type(data)},"+
                          "only np.ndarray, pd.DataFrame.")
 
     return power_spectrum
+
+def getPowerSpetrumPandas(data, window_data=1, siding='single'):
+    sampling_unit = extractSamplingPeriod(data)
+    sampling_frequency_Hz = (1 / sampling_unit).to(ureg.Hz).magnitude
+    half_data_length = int((len(data)/2+1))
+    if siding == 'double':
+        frequencies = np.linspace(-sampling_frequency_Hz/2,
+                                  sampling_frequency_Hz/2,
+                                  2*half_data_length - 1)
+    elif siding == 'single':
+        frequencies = np.linspace(0, sampling_frequency_Hz/2,
+                                  half_data_length)
+    else: raise ValueError(f'No such siding {siding}')
+    fft_data = getPowerSpectrumNumpy(
+        data.iloc[:,1].values,
+        window_data=window_data, siding=siding)
+    overall_data = pd.DataFrame(
+        {'Frequency (Hz)': frequencies, 'Power': fft_data})
+    return overall_data
 
 def getPowerSpectrumNumpy(data, window_data, siding='single'):
     bare_fft = np.fft.fft(data * window_data / len(data))
@@ -62,3 +84,18 @@ def powerSpectrumPlot(spectrum, sampling_frequency, siding='single'):
     ax.set_ylabel('Power (dBx)')
     return fig, ax
 
+def extractSamplingPeriod(data):
+    # For now, assume time is the first variable in the column
+    columns = data.columns.values
+    time_column = [('Time' or 'time') in c for c in columns]
+    string = columns[time_column][0]
+    delta_time = data[string][1] - data[string][0]
+
+    unit_pattern = re.compile('\(\w+\)')
+    match = unit_pattern.search(string)
+    if match == None:
+        raise ValueError(f'Cannot match units of {string}')
+
+    bare_unit = match.group()[1:-1]
+    unit = delta_time * ureg.parse_expression(bare_unit)
+    return unit

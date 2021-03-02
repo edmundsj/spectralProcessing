@@ -1,6 +1,7 @@
 import context
 import unittest
 import numpy as np
+import pandas as pd
 from numpy.testing import assert_equal, assert_allclose
 from spectral_processing import getPowerSpectrum
 
@@ -141,7 +142,25 @@ class TestSpectralPower(unittest.TestCase):
 
     def testPandasBoxcar(self):
         """
+        Tests whether pandas gives the correct sampling frequency,
+        frequency spacing, and spectral data.
         """
+        raw_data = np.array([1, 2, 3, 4, 5, 0])
+        times = np.array([1, 2, 3, 4, 5, 6])
+        desired_frequencies = np.array([0, 1/6, 1/3,1/2])
+        desired_unit = 'Hz'
+        desired_powers =np.array([6.25, 2*1, 2*1/3.0, 2*1/4.0])
+        input_data = pd.DataFrame({
+            'Time (s)': times,
+            'Amplitude (uV)': raw_data})
+        actual_spectrum = \
+                getPowerSpectrum(input_data, window='box', siding='single')
+        desired_spectrum = pd.DataFrame({
+            'Frequency (Hz)': desired_frequencies,
+            'Power': desired_powers})
+        assert_equal(actual_spectrum.columns.values,
+                     desired_spectrum.columns.values)
+        assert_allclose(actual_spectrum, desired_spectrum, atol=1e-15)
 
     def tearDown(self):
         pass # Tear down to be run after every test case
