@@ -1,3 +1,4 @@
+[![Build](https://github.com/edmundsj/spectralProcessing/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/edmundsj/spectralProcessing/actions/workflows/python-package-conda.yml)
 spectralProcessing Repository
 ================================
 This module is for computing spectral properties of interest for EE
