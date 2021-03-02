@@ -19,6 +19,7 @@ __pycache__
 .coverage
 
 build/
+htmlcov/
 dist/
 _sources/
 rcwa.egg-info/
