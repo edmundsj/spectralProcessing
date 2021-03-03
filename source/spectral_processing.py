@@ -1,3 +1,7 @@
+"""
+TODO: Add power spectrum plotting for pandas as well as numpy, separate out the
+two.
+"""
 import numpy as np
 import pandas as pd
 from scipy.signal.windows import hann
@@ -41,8 +45,15 @@ def getPowerSpectrum(data, window='box', siding='single'):
     return power_spectrum
 
 def getPowerSpetrumPandas(data, window_data=1, siding='single'):
-    sampling_unit = extractSamplingPeriod(data)
-    sampling_frequency_Hz = (1 / sampling_unit).to(ureg.Hz).magnitude
+    sampling_period = extractSamplingPeriod(data)
+    sampling_frequency_Hz = (1 / sampling_period).to(ureg.Hz).magnitude
+
+    power_quantity = extractUnit(data.columns.values[1])
+    power_magnitude = power_quantity.magnitude
+    power_unit = power_quantity.units
+    power_unit_string = r'Power $({:~}^2)$'.format(power_unit)
+    #breakpoint()
+
     half_data_length = int((len(data)/2+1))
     if siding == 'double':
         frequencies = np.linspace(-sampling_frequency_Hz/2,
@@ -56,7 +67,7 @@ def getPowerSpetrumPandas(data, window_data=1, siding='single'):
         data.iloc[:,1].values,
         window_data=window_data, siding=siding)
     overall_data = pd.DataFrame(
-        {'Frequency (Hz)': frequencies, 'Power': fft_data})
+        {'Frequency (Hz)': frequencies, power_unit_string: fft_data})
     return overall_data
 
 def getPowerSpectrumNumpy(data, window_data, siding='single'):
@@ -91,11 +102,16 @@ def extractSamplingPeriod(data):
     string = columns[time_column][0]
     delta_time = data[string][1] - data[string][0]
 
-    unit_pattern = re.compile('\(\w+\)')
-    match = unit_pattern.search(string)
-    if match == None:
-        raise ValueError(f'Cannot match units of {string}')
+    sampling_period = delta_time * extractUnit(string)
+    return sampling_period
 
-    bare_unit = match.group()[1:-1]
-    unit = delta_time * ureg.parse_expression(bare_unit)
+def extractUnit(unit_string):
+    # Search for anything in parentheses, interpret as a unit.
+    unit_pattern = re.compile('\(\w+\)')
+    match = unit_pattern.search(unit_string)
+    if match == None:
+        raise ValueError(f'Cannot match units of string {string}')
+
+    bare_unit = match.group()[1:-1] # remove parentheses
+    unit = 1 * ureg.parse_expression(bare_unit)
     return unit

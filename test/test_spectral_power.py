@@ -157,7 +157,7 @@ class TestSpectralPower(unittest.TestCase):
                 getPowerSpectrum(input_data, window='box', siding='single')
         desired_spectrum = pd.DataFrame({
             'Frequency (Hz)': desired_frequencies,
-            'Power': desired_powers})
+            r'Power $(µV^2)$': desired_powers})
         assert_equal(actual_spectrum.columns.values,
                      desired_spectrum.columns.values)
         assert_allclose(actual_spectrum, desired_spectrum, atol=1e-15)
